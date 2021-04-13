@@ -1,8 +1,6 @@
-import codecs
-import os
-import sys
-
+import os, io, sys
 from PyQt5.QtWidgets import QApplication, QWidget, QPushButton, QGridLayout, QFileDialog, QLabel
+from google.cloud import vision
 from hanspell import spell_checker
 
 os.environ['GOOGLE_APPLICATION_CREDENTIALS']=r"C:\WorkSpace\pycharm\jw-img2txt-8f65dde3d9fb.json"
@@ -12,7 +10,7 @@ class QtGUI(QWidget):
     def __init__(self):
         super().__init__()
         self.num = 0
-        self.setWindowTitle("Appia Qt GUI")
+        self.setWindowTitle("Img to Text")
         self.resize(300, 400)
         self.qclist = []
         self.position = 0
@@ -30,15 +28,16 @@ class QtGUI(QWidget):
         self.Lgrid.addWidget(self.label2, 3, 1)
         self.Lgrid.addWidget(addbutton2, 4, 1)
         addbutton2.clicked.connect(self.add_save)
-        addbutton3 = QPushButton('원본 형태', self)
+        addbutton3 = QPushButton('Run', self)
         self.Lgrid.addWidget(self.label3, 5, 1)
         self.Lgrid.addWidget(addbutton3, 6, 1)
         addbutton3.clicked.connect(self.detect_text)
-        addbutton4 = QPushButton('줄바꿈 제거 형태', self)
+        addbutton4 = QPushButton('Run *Remove NewLine', self)
         self.Lgrid.addWidget(self.label4, 7, 1)
         self.Lgrid.addWidget(addbutton4, 8, 1)
         addbutton4.clicked.connect(self.removeNewLine)
         self.show()
+
 
     def add_open(self):
         FileOpen = QFileDialog.getOpenFileName(self, 'Open file', r'C:\Users\parkj\Downloads')
@@ -46,22 +45,15 @@ class QtGUI(QWidget):
         self.label1.setText(FileOpen[0])
 
     def add_save(self):
-        savepath = self.label1.text()
-        savepath = savepath.split('/')
-        filename = savepath.pop()
-        filename = filename.capitalize()  # str.capitalize()는 str의 첫 글자만을 대문자로, 나머지는 전부 소문자로 바꾼 str을 return해 줍니다.
-        savepath = ('\\').join(savepath) + '\\New' + filename
-
+        savepath = self.label1.text().split('/')
+        filename = (savepath.pop()).split('.')[0].capitalize() #str.capitalize()는 str의 첫 글자만을 대문자로, 나머지는 전부 소문자로 바꾼 str을 return
+        savepath = ('\\').join(savepath) + '\\New' + filename + '.txt'
         FileSave = QFileDialog.getSaveFileName(self, 'Save file', savepath)
 
         self.label2.setText(FileSave[0])
 
     def detect_text(self):
-        """Detects text in the file."""
-        from google.cloud import vision
-        import io
         client = vision.ImageAnnotatorClient()
-
         path = self.label1.text()
 
         with io.open(path, 'rb') as image_file:
@@ -72,20 +64,15 @@ class QtGUI(QWidget):
         response = client.text_detection(image=image)
         texts = response.text_annotations
 
-        text = texts[0]
+        text = format(texts[0].description)
 
         with open(self.label2.text(), 'w', encoding='utf-8') as f:
-            f.write(format(text.description))
+            f.write(text)
 
-        # print('\n"{}"'.format(text.description))
         self.label3.setText('Successed')
 
     def removeNewLine(self):
-        """Detects text in the file."""
-        from google.cloud import vision
-        import io
         client = vision.ImageAnnotatorClient()
-
         path = self.label1.text()
 
         with io.open(path, 'rb') as image_file:
@@ -115,69 +102,5 @@ class QtGUI(QWidget):
 
 if __name__ == '__main__':
     app = QApplication(sys.argv)
-
     ex = QtGUI()
-
     app.exec_()
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-# import os
-#
-# os.environ['GOOGLE_APPLICATION_CREDENTIALS']=r"C:\WorkSpace\pycharm\jw-img2txt-8f65dde3d9fb.json"
-#
-# def detect_text(path):
-#     """Detects text in the file."""
-#     from google.cloud import vision
-#     import io
-#     client = vision.ImageAnnotatorClient()
-#
-#     with io.open(path, 'rb') as image_file:
-#         content = image_file.read()
-#
-#     image = vision.Image(content=content)
-#
-#     response = client.text_detection(image=image)
-#     texts = response.text_annotations
-#     print('Texts:')
-#
-#     text = texts[0]
-#     print('\n"{}"'.format(text.description))
-#
-#     if response.error.message:
-#         raise Exception(
-#             '{}\nFor more info on error messages, check: '
-#             'https://cloud.google.com/apis/design/errors'.format(
-#                 response.error.message))
-#
-# file_name = os.path.join(
-#     os.path.dirname(__file__),
-#     'resources\\book2.jpg')
-#
-# detect_text(file_name)
-#
-#
