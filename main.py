@@ -1,7 +1,4 @@
-# Example Usage:
-# python detect.py text ./resources/wakeupcat.jpg
-
-import argparse, os
+import os
 
 os.environ['GOOGLE_APPLICATION_CREDENTIALS']=r"C:\WorkSpace\pycharm\jw-img2txt-8f65dde3d9fb.json"
 
@@ -29,20 +26,10 @@ def detect_text(path):
             'https://cloud.google.com/apis/design/errors'.format(
                 response.error.message))
 
-def run_local(args):
-    if args.command == 'text':
-        detect_text(args.path)
+file_name = os.path.join(
+    os.path.dirname(__file__),
+    'resources\\book1.jpg')
 
-if __name__ == '__main__':
-    parser = argparse.ArgumentParser(
-        description=__doc__,
-        formatter_class=argparse.RawDescriptionHelpFormatter)
-    subparsers = parser.add_subparsers(dest='command')
+detect_text(file_name)
 
-    detect_text_parser = subparsers.add_parser(
-        'text', help=detect_text.__doc__)
-    detect_text_parser.add_argument('path')
 
-    args = parser.parse_args()
-
-    run_local(args)
