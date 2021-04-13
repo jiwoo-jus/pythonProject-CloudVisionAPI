@@ -20,13 +20,8 @@ def detect_text(path):
     texts = response.text_annotations
     print('Texts:')
 
-    for text in texts:
-        print('\n"{}"'.format(text.description))
-
-        # vertices = (['({},{})'.format(vertex.x, vertex.y)
-        #             for vertex in text.bounding_poly.vertices])
-        #
-        # print('bounds: {}'.format(','.join(vertices)))
+    text = texts[0]
+    print('\n"{}"'.format(text.description))
 
     if response.error.message:
         raise Exception(
