@@ -10,20 +10,20 @@ class QtGUI(QWidget):
     def __init__(self):
         super().__init__()
         self.num = 0
-        self.setWindowTitle("Img to Text")
-        self.resize(300, 400)
+        self.setWindowTitle("Img to Text") # 위젯타이틀 설정
+        self.resize(300, 400) # 사이즈 가로 300, 세로 400
         self.qclist = []
         self.position = 0
-        self.Lgrid = QGridLayout()
+        self.Lgrid = QGridLayout() # 격자모양표에 요소 순차 배치 레이아웃
         self.setLayout(self.Lgrid)
-        self.label1 = QLabel('', self)
+        self.label1 = QLabel('', self) # 빈 문자열로 채운 라벨 생성
         self.label2 = QLabel('', self)
         self.label3 = QLabel('', self)
         self.label4 = QLabel('', self)
-        addbutton1 = QPushButton('Open File', self)
-        self.Lgrid.addWidget(self.label1, 1, 1)
-        self.Lgrid.addWidget(addbutton1, 2, 1)
-        addbutton1.clicked.connect(self.add_open)
+        addbutton1 = QPushButton('Open File', self) # 'OpenFile' 문자열로 표시되는 버튼 생성
+        self.Lgrid.addWidget(self.label1, 1, 1) # (1,1)위치에 label1 부착
+        self.Lgrid.addWidget(addbutton1, 2, 1) # (2,1)위치에 addbutton1 부착
+        addbutton1.clicked.connect(self.add_open) # 사용자가 버튼 클릭시 add_open 함수 실행
         addbutton2 = QPushButton('Save File', self)
         self.Lgrid.addWidget(self.label2, 3, 1)
         self.Lgrid.addWidget(addbutton2, 4, 1)
@@ -32,7 +32,7 @@ class QtGUI(QWidget):
         self.Lgrid.addWidget(self.label3, 5, 1)
         self.Lgrid.addWidget(addbutton3, 6, 1)
         addbutton3.clicked.connect(self.detect_text)
-        addbutton4 = QPushButton('Run *Remove NewLine', self)
+        addbutton4 = QPushButton('Run *remove newline', self)
         self.Lgrid.addWidget(self.label4, 7, 1)
         self.Lgrid.addWidget(addbutton4, 8, 1)
         addbutton4.clicked.connect(self.removeNewLine)
@@ -40,33 +40,34 @@ class QtGUI(QWidget):
 
 
     def add_open(self):
+        # 파일다이어로그를 띄움. Downloads폴더 위치를 디폴트값으로 설정함. 사용자는 파일 선택.
         FileOpen = QFileDialog.getOpenFileName(self, 'Open file', r'C:\Users\parkj\Downloads')
 
-        self.label1.setText(FileOpen[0])
+        self.label1.setText(FileOpen[0]) # 선택파일 경로(FileOpen[0])를 label1텍스트로 세팅함
 
     def add_save(self):
-        savepath = self.label1.text().split('/')
-        filename = (savepath.pop()).split('.')[0].capitalize() #str.capitalize()는 str의 첫 글자만을 대문자로, 나머지는 전부 소문자로 바꾼 str을 return
-        savepath = ('\\').join(savepath) + '\\New' + filename + '.txt'
-        FileSave = QFileDialog.getSaveFileName(self, 'Save file', savepath)
+        savepath = self.label1.text().split('/') # 오픈파일의 경로(label1.text())를 '/'기준으로 끊어서 리스트로 저장
+        filename = (savepath.pop()).split('.')[0].capitalize() # 파일명부분(savepath.pop())을 다시 '.'로 끊어서 첫 요소(순수이름부분)를 앞글자 대문자화시킴
+        savepath = ('\\').join(savepath) + '\\New' + filename + '.txt' # 오픈경로를 담은 리스트변수를 다시 경로구분선'\\'을 사이에 두고 붙임. + 'New' + filename(앞글자 대문자화된 기존파일명) + '.txt'(확장자)
+        FileSave = QFileDialog.getSaveFileName(self, 'Save file', savepath) # 설정한 디폴트 경로(savepath)로 파일다이어로그 띄움. 사용자는 새파일 저장경로 선택.
 
-        self.label2.setText(FileSave[0])
+        self.label2.setText(FileSave[0]) # 선택 경로를 label2에 부착
 
     def detect_text(self):
-        client = vision.ImageAnnotatorClient()
-        path = self.label1.text()
+        client = vision.ImageAnnotatorClient() # 코드 앞부분에 클라우드 콘솔 서비스 계정 키파일 경로 명시해둠
+        path = self.label1.text() # 파일 오픈 위치
 
+        # 로컬 이미지 파일(바이너리 데이터)을 비전에 전달하기 위해서 base64라는 인코딩을 거쳐 문자열로 변환해 전송
         with io.open(path, 'rb') as image_file:
             content = image_file.read()
-
         image = vision.Image(content=content)
 
-        response = client.text_detection(image=image)
-        texts = response.text_annotations
+        response = client.text_detection(image=image) # response에는 이미지에서 문자 감지한 것에 대한 각종 정보가 다 들어있음
+        texts = response.text_annotations # 여기서 필요한 것
 
-        text = format(texts[0].description)
+        text = format(texts[0].description) # 인덱스 0 위치에 전체 통 문자열이 담겨있음.
 
-        with open(self.label2.text(), 'w', encoding='utf-8') as f:
+        with open(self.label2.text(), 'w', encoding='utf-8') as f: # 지정한 저장 경로에 파일 작성
             f.write(text)
 
         self.label3.setText('Successed')
